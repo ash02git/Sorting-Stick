@@ -11,6 +11,7 @@ namespace Gameplay
         class StickCollectionModel;
         struct Stick;
         enum class SortType;
+        enum class SortState;
 
         class StickCollectionController
         {
@@ -30,6 +31,10 @@ namespace Gameplay
             int delay_in_ms;
             sf::String time_complexity;
 
+            SortState sort_state;
+
+            int color_delay;
+
             void initializeSticks();
             float calculateStickWidth();
             float calculateStickHeight(int array_pos);
@@ -45,6 +50,10 @@ namespace Gameplay
 
             bool isCollectionSorted();
             void destroy();
+
+            void setCompletedColor();
+
+            void processBubbleSort();
 
         public:
             StickCollectionController();
