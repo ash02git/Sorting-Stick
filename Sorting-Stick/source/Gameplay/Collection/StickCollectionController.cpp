@@ -117,7 +117,11 @@ namespace Gameplay
 		void StickCollectionController::processSortThreadState()
 		{
 			
-			if (sort_thread.joinable() && isCollectionSorted()) sort_thread.join();
+			if (sort_thread.joinable() && isCollectionSorted())
+			{
+				sort_thread.join();
+				sort_state = SortState::NOT_SORTING;
+			}
 		}
 
 
@@ -154,7 +158,12 @@ namespace Gameplay
 			switch (sort_type)
 			{
 			case Gameplay::Collection::SortType::BUBBLE_SORT:
+				time_complexity = "O(n^2)";
 				sort_thread = std::thread(&StickCollectionController::processBubbleSort, this);
+				break;
+			case Gameplay::Collection::SortType::INSERTION_SORT:
+				time_complexity = "O(n^2)";
+				sort_thread = std::thread(&StickCollectionController::processInsertionSort, this);
 				break;
 			}
 		}
@@ -248,6 +257,57 @@ namespace Gameplay
 					break;
 			}
 			std::cout << "Came out of I loop\n";
+			setCompletedColor();
+		}
+
+		void StickCollectionController::processInsertionSort()
+		{
+			Sound::SoundService* sound = Global::ServiceLocator::getInstance()->getSoundService();
+
+			for (int i = 1; i < sticks.size(); ++i)
+			{
+
+				if (sort_state == SortState::NOT_SORTING) { break; }
+
+				int j = i - 1;
+				Stick* key = sticks[i];
+				number_of_array_access++; // Access for key stick
+
+
+				key->stick_view->setFillColor(collection_model->processing_element_color); // Current key is red
+
+				std::this_thread::sleep_for(std::chrono::milliseconds(current_operation_delay));
+
+				while (j >= 0 && sticks[j]->data > key->data)
+				{
+
+					if (sort_state == SortState::NOT_SORTING) { break; }
+
+					number_of_comparisons++;
+					number_of_array_access++;
+
+					sticks[j + 1] = sticks[j];
+					number_of_array_access++; // Access for assigning sticks[j] to sticks[j + 1]
+					sticks[j + 1]->stick_view->setFillColor(collection_model->processing_element_color); // Mark as being compared
+					j--;
+					sound->playSound(Sound::SoundType::COMPARE_SFX);
+					updateStickPosition(); // Visual update
+
+					std::this_thread::sleep_for(std::chrono::milliseconds(current_operation_delay));
+
+					sticks[j + 2]->stick_view->setFillColor(collection_model->selected_element_color); // Mark as being compared
+
+				}
+
+				sticks[j + 1] = key;
+				number_of_array_access++;
+				sticks[j + 1]->stick_view->setFillColor(collection_model->temporary_processing_color); // Placed key is green indicating it's sorted
+				sound->playSound(Sound::SoundType::COMPARE_SFX);
+				updateStickPosition(); // Final visual update for this iteration
+				std::this_thread::sleep_for(std::chrono::milliseconds(current_operation_delay));
+				sticks[j + 1]->stick_view->setFillColor(collection_model->selected_element_color); // Placed key is green indicating it's sorted
+			}
+
 			setCompletedColor();
 		}
 
