@@ -55,6 +55,7 @@ namespace Gameplay
 
             void processBubbleSort();
             void processInsertionSort();
+            void processSelectionSort();
 
         public:
             StickCollectionController();
