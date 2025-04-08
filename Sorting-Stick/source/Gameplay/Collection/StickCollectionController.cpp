@@ -166,8 +166,12 @@ namespace Gameplay
 				sort_thread = std::thread(&StickCollectionController::processInsertionSort, this);
 				break;
 			case Gameplay::Collection::SortType::SELECTION_SORT:
-				time_complexity = "";
+				time_complexity = "O(n^2)";
 				sort_thread = std::thread(&StickCollectionController::processSelectionSort, this);
+				break;
+			case Gameplay::Collection::SortType::MERGE_SORT:
+				time_complexity = "O(n Log n)";
+				sort_thread = std::thread(&StickCollectionController::processInPlaceMergeSort, this);
 				break;
 			}
 		}
@@ -365,6 +369,66 @@ namespace Gameplay
 				std::this_thread::sleep_for(std::chrono::milliseconds(current_operation_delay));
 			}
 			setCompletedColor();
+		}
+
+		void StickCollectionController::processInPlaceMergeSort()
+		{
+			inPlaceMergeSort(0, sticks.size() - 1);
+
+			setCompletedColor();
+		}
+
+		void StickCollectionController::inPlaceMerge(int left, int mid, int right)
+		{
+			Sound::SoundService* sound = Global::ServiceLocator::getInstance()->getSoundService();
+
+			int i = left;
+			int j = mid + 1;
+			int k = left;
+
+			while (i <= mid && j <= right)
+			{
+				if (sticks[i]->data <= sticks[j]->data)
+				{
+					i++;
+					k++;
+
+					number_of_array_access += 2;
+					number_of_comparisons++;
+				}
+				else
+				{
+					Stick* temp = sticks[j];
+					for (int l = j; l > k; l--)
+					{
+						sticks[l] = sticks[l - 1];
+						number_of_array_access += 2;
+					}
+					sticks[k] = temp;number_of_array_access++;
+					i++;
+					mid++;
+					j++;
+					k++;
+
+					sound->playSound(Sound::SoundType::COMPARE_SFX);
+					updateStickPosition();
+
+					std::this_thread::sleep_for(std::chrono::milliseconds(current_operation_delay));
+				}
+			}
+		}
+
+		void StickCollectionController::inPlaceMergeSort(int left, int right)
+		{
+			if (left < right)
+			{
+				int mid = left + (right - left) / 2;
+				inPlaceMergeSort(left, mid);
+				inPlaceMergeSort(mid + 1, right);
+				inPlaceMerge(left, mid, right);
+			}
+			else
+				return;
 		}
 
 		SortType StickCollectionController::getSortType() { return sort_type; }
