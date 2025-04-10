@@ -40,6 +40,7 @@ namespace Gameplay
             float calculateStickHeight(int array_pos);
 
             void updateStickPosition();
+            void updateStickPosition(int i);
             void shuffleSticks();
             bool compareSticksByData(const Stick* a, const Stick* b) const;
 
@@ -59,6 +60,7 @@ namespace Gameplay
             void processInPlaceMergeSort();
             void processMergeSort();
             void processQuickSort();
+            void processRadixSort();
 
             void inPlaceMerge(int left, int mid, int right);
             void inPlaceMergeSort(int left,int right);
@@ -68,6 +70,9 @@ namespace Gameplay
 
             void quickSort(int low, int high);
             int partition(int low, int high);
+
+            void radixSort();
+            void countSort(int exponent);
 
         public:
             StickCollectionController();
