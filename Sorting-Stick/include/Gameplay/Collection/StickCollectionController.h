@@ -58,12 +58,16 @@ namespace Gameplay
             void processSelectionSort();
             void processInPlaceMergeSort();
             void processMergeSort();
+            void processQuickSort();
 
             void inPlaceMerge(int left, int mid, int right);
             void inPlaceMergeSort(int left,int right);
 
             void outPlaceMergeSort(int left, int right);
             void outPlaceMerge(int left, int mid, int right);
+
+            void quickSort(int low, int high);
+            int partition(int low, int high);
 
         public:
             StickCollectionController();

@@ -173,6 +173,10 @@ namespace Gameplay
 				time_complexity = "O(n Log n)";
 				sort_thread = std::thread(&StickCollectionController::processMergeSort, this);
 				break;
+			case Gameplay::Collection::SortType::QUICK_SORT:
+				time_complexity = "O(n Log n)";
+				sort_thread = std::thread(&StickCollectionController::processQuickSort, this);
+				break;
 			}
 		}
 
@@ -385,6 +389,13 @@ namespace Gameplay
 			setCompletedColor();
 		}
 
+		void StickCollectionController::processQuickSort()
+		{
+			quickSort(0, sticks.size() - 1);
+
+			setCompletedColor();
+		}
+
 		void StickCollectionController::inPlaceMerge(int left, int mid, int right)
 		{
 			Sound::SoundService* sound = Global::ServiceLocator::getInstance()->getSoundService();
@@ -509,6 +520,66 @@ namespace Gameplay
 			}
 
 
+		}
+
+		void StickCollectionController::quickSort(int low, int high)
+		{
+			if (low < high) 
+			{
+				int pivot = partition(low, high);
+				quickSort(low, pivot - 1);
+				quickSort(pivot + 1, high);
+			}
+
+			for (int i = low; i <= high; i++) 
+			{
+				sticks[i]->stick_view->setFillColor(collection_model->placement_position_element_color);
+				updateStickPosition();
+			}
+		}
+
+		int StickCollectionController::partition(int low, int high)
+		{
+			Sound::SoundService* sound = Global::ServiceLocator::getInstance()->getSoundService();
+			
+			int pivot_data = sticks[high]->data;
+			sticks[high]->stick_view->setFillColor(collection_model->selected_element_color);
+			
+			int swap_marker = low - 1;
+
+			for (int j = low;j < high;j++)
+			{
+				sticks[j]->stick_view->setFillColor(collection_model->processing_element_color);
+				number_of_array_access += 2;
+				number_of_comparisons++;
+				
+				if (sticks[j]->data < pivot_data)
+				{
+					swap_marker++;
+
+					Stick* temp = sticks[swap_marker];
+					sticks[swap_marker] = sticks[j];
+					sticks[j] = temp;
+
+					number_of_array_access += 3;
+					sound->playSound(Sound::SoundType::COMPARE_SFX);
+
+					updateStickPosition();
+					std::this_thread::sleep_for(std::chrono::milliseconds(current_operation_delay));
+				}
+
+				sticks[j]->stick_view->setFillColor(collection_model->element_color);
+			}
+
+			Stick* temp = sticks[swap_marker + 1];
+			sticks[swap_marker + 1] = sticks[high];
+			sticks[high] = temp;
+
+			number_of_array_access += 3;
+
+			updateStickPosition();
+
+			return swap_marker + 1;
 		}
 
 		SortType StickCollectionController::getSortType() { return sort_type; }
